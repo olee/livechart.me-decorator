@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup",
-    "watch": "tsup --watch"
+    "watch": "tsup --watch",
+    "genql": "genql --endpoint https://graphql.anilist.co --output ./src/genql --sort"
   },
   "keywords": [],
   "author": "Björn Zeutzheim <npm@bzeutzheim.de> (https://github.com/olee)",

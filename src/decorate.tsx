@@ -2,7 +2,31 @@ import { createElement, createFragment, createRef } from '@/jsx-factory';
 import getAnimeInfo from "./getAnimeInfo";
 import { loadAnimeInfo } from "./persistence";
 
+import * as anilist from './anilist';
+
 export async function decoratePage() {
+    const headerEl = document.querySelector<HTMLElement>(
+        '[data-controller="schedule"] .lc-chip-button.lc-chip-button-outline:last-of-type'
+    );
+    if (headerEl) {
+        const btn = anilist.isAuthenticated() ? (
+            <button
+                class="lc-chip-button lc-chip-button-outline"
+                onClick={() => anilist.logout()}
+            >
+                Logout from AniList
+            </button>
+        ) : (
+            <a
+                class="lc-chip-button lc-chip-button-outline"
+                href={anilist.getLoginUrl()}
+            >
+                Login with AniList
+            </a>
+        );
+        headerEl.after(btn);
+    }
+
     const elements = document.querySelectorAll<HTMLElement>('.lc-timetable-anime-block');
     for (let el of elements) {
         await decorateAnimeBlock(el, true);
@@ -47,4 +71,3 @@ export async function decorateAnimeBlock(el: HTMLElement, disableFetch = false) 
         }
     }
 }
-
