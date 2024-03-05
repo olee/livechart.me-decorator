@@ -1,0 +1,17 @@
+{
+  "name": "livechart.me",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch"
+  },
+  "keywords": [],
+  "author": "Björn Zeutzheim <npm@bzeutzheim.de> (https://github.com/olee)",
+  "license": "ISC",
+  "devDependencies": {
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  }
+}
