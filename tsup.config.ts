@@ -20,7 +20,10 @@ export default defineConfig({
     sourcemap: false,
     clean: true,
     minify: false,
+    env: {
+        NODE_ENV: 'development',
+    },
     banner: {
         js: userScriptHeader,
-    }
+    },
 });
