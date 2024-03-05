@@ -1,5 +1,6 @@
+import { findAnilistId } from "./anilist";
 import { loadAnimeInfo, saveAnimeInfo } from "./persistence";
-import { RateLimitError, isInfoOutdated, type AnimeInfo, type StreamInfo } from "./types";
+import { RateLimitError, isInfoOutdated, type AnimeInfo, type StreamInfo, ANIME_INFO_VERSION } from "./types";
 
 declare global {
     var process: {
@@ -83,6 +84,10 @@ export function processAnimeInfo(doc: ParentNode) {
         throw new Error(`Could not find title for anime ${ogUrl}`);
     }
 
+    // example: https://anilist.co/anime/163076
+    const linkElements = Array.from(doc.querySelectorAll<HTMLAnchorElement>('a'));
+    const anilistId = findAnilistId(linkElements);
+
     const streams = Array.from(doc.querySelectorAll<HTMLAnchorElement>(ANIME_INFO_STREAMS_SELECTOR))
         .map<StreamInfo>(x => ({
             href: x.href,
@@ -91,9 +96,11 @@ export function processAnimeInfo(doc: ParentNode) {
         .filter(x => !x.href.includes('crunchyroll.com/videos'));
 
     const info = Object.freeze<AnimeInfo>({
+        version: ANIME_INFO_VERSION,
         id,
         title,
         streams,
+        anilistId: anilistId,
         updatedAt: Date.now(),
     });
     console.debug(`Fetched anime info [${id}] "${info.title}"`, info);

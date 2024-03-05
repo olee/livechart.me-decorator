@@ -3,6 +3,10 @@ import getAnimeInfo from "./getAnimeInfo";
 import { loadAnimeInfo } from "./persistence";
 
 import * as anilist from './anilist';
+import { delay, getShortName } from './utils';
+import { AnimeInfo } from './types';
+
+const anilistStatusRef = createRef<HTMLElement>();
 
 export async function decoratePage() {
     const headerEl = document.querySelector<HTMLElement>(
@@ -10,21 +14,29 @@ export async function decoratePage() {
     );
     if (headerEl) {
         const btn = anilist.isAuthenticated() ? (
-            <button
-                class="lc-chip-button lc-chip-button-outline"
-                onClick={() => anilist.logout()}
-            >
-                Logout from AniList
-            </button>
+            <>
+                <button
+                    class="lc-chip-button lc-chip-button-outline"
+                    onClick={() => anilist.logout()}
+                >
+                    <img class='w-5 mr-2' src='https://anilist.co/img/icons/favicon-32x32.png' />
+                    Logout
+                </button>
+                <div class='h-8 px-2 rounded-full border border-base-content/20 flex items-center min-w-0'>
+                    <img class='w-5 mr-2' src='https://anilist.co/img/icons/favicon-32x32.png' />
+                    <span ref={anilistStatusRef} class='truncate'>Logged in</span>
+                </div>
+            </>
         ) : (
             <a
                 class="lc-chip-button lc-chip-button-outline"
                 href={anilist.getLoginUrl()}
+                title='Login with AniList'
             >
-                Login with AniList
+                <img class='w-5' src='https://anilist.co/img/icons/favicon-32x32.png' />
             </a>
         );
-        headerEl.after(btn);
+        headerEl.after(...Array.isArray(btn) ? btn : [btn]);
     }
 
     const elements = document.querySelectorAll<HTMLElement>('.lc-timetable-anime-block');
@@ -69,5 +81,62 @@ export async function decorateAnimeBlock(el: HTMLElement, disableFetch = false) 
             );
             el.append(watchBtnContainer);
         }
+    }
+
+    const progressBtn = el.querySelector<HTMLElement>(
+        '[data-schedule-anime-target=progressJumpButton]'
+    );
+    if (progressBtn && !progressBtn.dataset.decorated) {
+        const title = progressBtn.title;
+        // pattern of title should be "Progress to \d+"
+        const episode = Number(title.match(/\d+/)?.[0]);
+        if (!Number.isNaN(episode)) {
+            progressBtn.addEventListener('click', async () => {
+                // Delay to complete website interaction
+                await delay(100);
+
+                // get first 2 words from title
+                const shortTitle = getShortName(info.title);
+
+                // AniList
+                if (info.anilistId && anilist.isAuthenticated()) {
+                    const status = await anilist.getStatus(info.anilistId);
+                    if (!status) {
+                        console.error(`Failed to get AniList status for anime ${info.anilistId}`);
+                        return;
+                    }
+                    if (status.status === 'COMPLETED') {
+                        alert('This anime is already completed on AniList');
+                        return;
+                    }
+                    if (status.progress && status.progress >= episode) {
+                        alert(`You have already marked episode ${episode} as watched on AniList`);
+                        return;
+                    }
+                    setStatus(`Updating "${shortTitle}"...`);
+                    try {
+                        await anilist.updateProgress(info.anilistId, episode);
+                        setStatus(`Updated "${shortTitle}" to episode ${episode}`);
+                    } catch (error) {
+                        console.error('Failed to update progress on AniList', error);
+                        setStatus(`Error updating "${shortTitle}"`, true);
+                    }
+                    await delay(5_000);
+                }
+            });
+            progressBtn.dataset.decorated = 'true';
+        }
+    }
+}
+
+function setStatus(status: string, error?: boolean) {
+    if (!anilistStatusRef.current) {
+        return;
+    }
+    anilistStatusRef.current.textContent = status;
+    if (error) {
+        anilistStatusRef.current.classList.add('text-error');
+    } else {
+        anilistStatusRef.current.classList.remove('text-error');
     }
 }
