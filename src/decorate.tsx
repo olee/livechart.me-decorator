@@ -1,3 +1,4 @@
+import { createElement, createFragment, createRef } from '@/jsx-factory';
 import getAnimeInfo from "./getAnimeInfo";
 import { loadAnimeInfo } from "./persistence";
 
@@ -28,22 +29,22 @@ export async function decorateAnimeBlock(el: HTMLElement, disableFetch = false) 
     if (topStream) {
         let watchBtnContainer = el.querySelector('.lc-tt-action-button-wrap');
         if (!watchBtnContainer) {
-            watchBtnContainer = document.createElement('div');
-            watchBtnContainer.classList.add('overflow-hidden', 'lc-tt-action-button-wrap');
+            // const imgRef = createRef<HTMLImageElement>();
+            watchBtnContainer = (
+                <div class="overflow-hidden lc-tt-action-button-wrap">
+                    <a
+                        class="lc-tt-action-button lc-release-schedule-action-button lc-btn-xs"
+                        href={topStream.href}
+                        target="_blank"
+                        rel="nofollow noopener"
+                        title="Watch"
+                    >
+                        <img /*ref={imgRef}*/ class="h-4" src={topStream.logo} />
+                    </a>
+                </div>
+            );
             el.append(watchBtnContainer);
-
-            const linkEl = document.createElement('a');
-            linkEl.classList.add('lc-tt-action-button', 'lc-release-schedule-action-button', 'lc-btn-xs');
-            linkEl.href = topStream.href;
-            linkEl.target = '_blank';
-            linkEl.rel = 'nofollow noopener';
-            linkEl.title = 'Watch';
-            watchBtnContainer.append(linkEl);
-
-            const iconEl = document.createElement('img'); // set to topStream.logo
-            iconEl.classList.add('h-4');
-            iconEl.src = topStream.logo || '';
-            linkEl.append(iconEl);
         }
     }
 }
+
