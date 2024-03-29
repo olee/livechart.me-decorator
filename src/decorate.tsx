@@ -106,11 +106,11 @@ export async function decorateAnimeBlock(el: HTMLElement, disableFetch = false) 
                         return;
                     }
                     if (status.status === 'COMPLETED') {
-                        alert('This anime is already completed on AniList');
+                        setStatus(`Status already complete: "${shortTitle}`);
                         return;
                     }
                     if (status.progress && status.progress >= episode) {
-                        alert(`You have already marked episode ${episode} as watched on AniList`);
+                        setStatus(`Episode already watched: "${shortTitle}`);
                         return;
                     }
                     setStatus(`Updating "${shortTitle}"...`);
