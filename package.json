@@ -12,6 +12,7 @@
   "author": "Björn Zeutzheim <npm@bzeutzheim.de> (https://github.com/olee)",
   "license": "ISC",
   "devDependencies": {
+    "@genql/cli": "^6.3.3",
     "tsup": "^8.0.2",
     "typescript": "^5.3.3"
   }

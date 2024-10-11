@@ -74,8 +74,8 @@ export function findAnilistId(links: HTMLAnchorElement[]) {
     }
 }
 
-export function getStatus(anilistId: number) {
-    return anilistClient.query({
+export async function getStatus(anilistId: number) {
+    return await anilistClient.query({
         MediaList: {
             __args: {
                 userId: anilistUserId,
@@ -84,17 +84,26 @@ export function getStatus(anilistId: number) {
             status: true,
             progress: true,
             score: true,
+            media: {
+                episodes: true,
+            }
         },
-    }).then(x => x.MediaList);
+    }).then(
+        x => x.MediaList,
+        error => {
+            console.error('Failed to get AniList status', error);
+            return null;
+        }
+    );
 }
 
-
-export async function updateProgress(anilistId: number, progress: number) {
+export async function updateProgress(anilistId: number, progress: number, setWatching: boolean) {
     return anilistClient.mutation({
         SaveMediaListEntry: {
             __args: {
                 mediaId: anilistId,
                 progress,
+                status: setWatching ? 'CURRENT' : undefined,
             },
             progress: true,
         },

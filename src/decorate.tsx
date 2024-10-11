@@ -4,7 +4,6 @@ import { loadAnimeInfo } from "./persistence";
 
 import * as anilist from './anilist';
 import { delay, getShortName } from './utils';
-import { AnimeInfo } from './types';
 
 const anilistStatusRef = createRef<HTMLElement>();
 
@@ -100,22 +99,29 @@ export async function decorateAnimeBlock(el: HTMLElement, disableFetch = false) 
 
                 // AniList
                 if (info.anilistId && anilist.isAuthenticated()) {
-                    const status = await anilist.getStatus(info.anilistId);
-                    if (!status) {
-                        console.error(`Failed to get AniList status for anime ${info.anilistId}`);
-                        return;
+                    let setWatching = true;
+                    let status = await anilist.getStatus(info.anilistId);
+                    if (status) {
+                        if (status.status === 'COMPLETED') {
+                            setStatus(`Status already complete: "${shortTitle}`);
+                            return;
+                        }
+                        if (status.progress && status.progress >= episode) {
+                            setStatus(`Episode already watched: "${shortTitle}`);
+                            return;
+                        }
+                        setWatching = Boolean(
+                            status.status !== 'CURRENT' &&
+                            status.media?.episodes && episode < status.media.episodes
+                        );
+                        setStatus(`Updating "${shortTitle}"...`);
+                    } else {
+                        // console.error(`Failed to get AniList status for anime ${info.anilistId}`);
+                        // return;
+                        setStatus(`Adding "${shortTitle}"...`);
                     }
-                    if (status.status === 'COMPLETED') {
-                        setStatus(`Status already complete: "${shortTitle}`);
-                        return;
-                    }
-                    if (status.progress && status.progress >= episode) {
-                        setStatus(`Episode already watched: "${shortTitle}`);
-                        return;
-                    }
-                    setStatus(`Updating "${shortTitle}"...`);
                     try {
-                        await anilist.updateProgress(info.anilistId, episode);
+                        await anilist.updateProgress(info.anilistId, episode, setWatching);
                         setStatus(`Updated "${shortTitle}" to episode ${episode}`);
                     } catch (error) {
                         console.error('Failed to update progress on AniList', error);
