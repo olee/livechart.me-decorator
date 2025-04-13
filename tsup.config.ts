@@ -3,7 +3,7 @@ import { defineConfig } from 'tsup';
 const userScriptHeader = `// ==UserScript==
 // @name         livechart.me utilities
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.2.0
 // @description  Add watch links to livechart.me timetable
 // @author       You
 // @match        https://www.livechart.me/*
